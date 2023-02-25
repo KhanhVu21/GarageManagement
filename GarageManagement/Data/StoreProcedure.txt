@@ -1,0 +1,882 @@
+/****** Object:  StoredProcedure [dbo].[GM_SP_CountCapacityDatabase]    Script Date: 10/02/2023 10:41:31 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[GM_SP_CountCapacityDatabase]
+AS
+SELECT
+    name,
+    size,
+    size * 8/1024 'Size (MB)',
+	size * 8/1024/1024 'Size (GB)',
+    max_size
+FROM sys.master_files
+WHERE DB_NAME(database_id) = 'GarageManagement'
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[GM_SP_DeleteCustomerByList]    Script Date: 10/02/2023 10:42:06 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE procedure [dbo].[GM_SP_DeleteCustomerByList]
+@IdCustomer uniqueidentifier,
+@IdUser uniqueidentifier
+AS  
+	--insert to table [dbo].[Customer_Vehicle_Deleted] from [Customer_Vehicle]
+	INSERT INTO [dbo].[Customer_Vehicle_Deleted] (Id, IdCustomer, IdVehicle)
+	SELECT 
+		Id, IdCustomer, IdVehicle
+	FROM 
+		[dbo].[Customer_Vehicle]
+	WHERE Id IN (SELECT Id FROM [dbo].[Customer_Vehicle] WHERE IdCustomer = @IdCustomer)
+
+	--insert to table Diary by [dbo].[Customer_Vehicle_Deleted]
+	INSERT INTO [dbo].[Diary]
+                           ([Id]
+                           ,[Content]
+                           ,[UserId]
+                           ,[DateCreate]
+                           ,[Title]
+                           ,[Operation]
+                           ,[Table]
+                           ,[IsSuccess]
+                           ,[UserName]
+                           ,[WithId])
+	 SELECT NEWID(),
+	 CONCAT((SELECT Fullname FROM [dbo].[User] WHERE Id = @IdUser), N' đã thêm mới bảng Customer_Vehicle_Deleted'),
+	 @IdUser, GETDATE(), N'Thêm mới vào CSDL', 'Create', 'Customer_Vehicle_Deleted', 1, 'Admin', Id FROM [dbo].[Customer_Vehicle] WHERE IdCustomer = @IdCustomer
+
+
+	--insert to table Diary by [dbo].[Customer_Vehicle]
+	INSERT INTO [dbo].[Diary]
+                           ([Id]
+                           ,[Content]
+                           ,[UserId]
+                           ,[DateCreate]
+                           ,[Title]
+                           ,[Operation]
+                           ,[Table]
+                           ,[IsSuccess]
+                           ,[UserName]
+                           ,[WithId])
+     SELECT NEWID(),
+	 CONCAT((SELECT Fullname FROM [dbo].[User] WHERE Id = @IdUser), N' đã xóa từ bảng Customer_Vehicle'),
+	 @IdUser, GETDATE(), N'Xóa thông tin CSDL', 'Delete', 'Customer_Vehicle', 1, 'Admin', Id FROM [dbo].[Customer_Vehicle] WHERE IdCustomer = @IdCustomer
+
+	--delete [Customer_Vehicle] by list Id
+	DELETE FROM [dbo].[Customer_Vehicle] WHERE Id IN (
+	SELECT Id FROM [dbo].[Customer_Vehicle] WHERE IdCustomer = @IdCustomer)
+
+	--insert to table [Customer_Deleted] from [Customer]
+	 INSERT INTO [dbo].[Customer_Deleted]
+                               ([Id]
+                               ,[Code]
+                               ,[Name]
+                               ,[Sex]
+                               ,[Birthday]
+                               ,[Phone]
+                               ,[Email]
+                               ,[Address]
+                               ,[IdCity]
+                               ,[IdDistrict]
+                               ,[IdWard]
+                               ,[TaxNumber]
+                               ,[AccountNumber]
+                               ,[Note]
+                               ,[Avatar]
+                               ,[TypeOfCustomer]
+                               ,[IdGroup]
+                               ,[Status]
+                               ,[CreatedDate]
+                               ,[Otp])
+	SELECT * FROM [dbo].[Customer] WHERE Id = @IdCustomer
+
+		--insert to table Diary by [dbo].[Customer_Deleted]
+	INSERT INTO [dbo].[Diary]
+                           ([Id]
+                           ,[Content]
+                           ,[UserId]
+                           ,[DateCreate]
+                           ,[Title]
+                           ,[Operation]
+                           ,[Table]
+                           ,[IsSuccess]
+                           ,[UserName]
+                           ,[WithId])
+     VALUES
+     (NEWID(),
+	 CONCAT((SELECT Fullname FROM [dbo].[User] WHERE Id = @IdUser), N' đã thêm mới bảng Customer_Deleted'),
+	 @IdUser, GETDATE(), N'Thêm mới vào CSDL', 'Create', 'Customer_Deleted', 1, 'Admin', @IdCustomer)
+
+	--delete [Customer] by Id
+	DELETE FROM [dbo].[Customer] WHERE Id = @IdCustomer
+
+	--insert to table Diary by [dbo].[Customer]
+	INSERT INTO [dbo].[Diary]
+                           ([Id]
+                           ,[Content]
+                           ,[UserId]
+                           ,[DateCreate]
+                           ,[Title]
+                           ,[Operation]
+                           ,[Table]
+                           ,[IsSuccess]
+                           ,[UserName]
+                           ,[WithId])
+     VALUES
+     (NEWID(),
+	 CONCAT((SELECT Fullname FROM [dbo].[User] WHERE Id = @IdUser), N' đã xóa từ bảng Customer'),
+	 @IdUser, GETDATE(), N'Xóa thông tin CSDL', 'Delete', 'Customer', 1, 'Admin', @IdCustomer)
+GO
+/****** Object:  StoredProcedure [dbo].[GM_SP_DeleteVehicleByList]    Script Date: 10/02/2023 10:42:42 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[GM_SP_DeleteVehicleByList]
+@IdVehicle uniqueidentifier,
+@IdUser uniqueidentifier
+AS  
+	--insert to table [dbo].[Customer_Vehicle_Deleted] from [Customer_Vehicle]
+	INSERT INTO [dbo].[Customer_Vehicle_Deleted] (Id, IdCustomer, IdVehicle)
+	SELECT 
+		Id, IdCustomer, IdVehicle
+	FROM 
+		[dbo].[Customer_Vehicle]
+	WHERE Id IN (SELECT Id FROM [dbo].[Customer_Vehicle] WHERE IdVehicle = @IdVehicle)
+
+	--insert to table Diary by [dbo].[Customer_Vehicle_Deleted]
+	INSERT INTO [dbo].[Diary]
+                           ([Id]
+                           ,[Content]
+                           ,[UserId]
+                           ,[DateCreate]
+                           ,[Title]
+                           ,[Operation]
+                           ,[Table]
+                           ,[IsSuccess]
+                           ,[UserName]
+                           ,[WithId])
+	 SELECT NEWID(),
+	 CONCAT((SELECT Fullname FROM [dbo].[User] WHERE Id = @IdUser), N' đã thêm mới bảng Customer_Vehicle_Deleted'),
+	 @IdUser, GETDATE(), N'Thêm mới vào CSDL', 'Create', 'Customer_Vehicle_Deleted', 1, 'Admin', Id FROM [dbo].[Customer_Vehicle] WHERE IdVehicle = @IdVehicle
+
+
+	--insert to table Diary by [dbo].[Customer_Vehicle]
+	INSERT INTO [dbo].[Diary]
+                           ([Id]
+                           ,[Content]
+                           ,[UserId]
+                           ,[DateCreate]
+                           ,[Title]
+                           ,[Operation]
+                           ,[Table]
+                           ,[IsSuccess]
+                           ,[UserName]
+                           ,[WithId])
+     SELECT NEWID(),
+	 CONCAT((SELECT Fullname FROM [dbo].[User] WHERE Id = @IdUser), N' đã xóa từ bảng Customer_Vehicle'),
+	 @IdUser, GETDATE(), N'Xóa thông tin CSDL', 'Delete', 'Customer_Vehicle', 1, 'Admin', Id FROM [dbo].[Customer_Vehicle] WHERE IdVehicle = @IdVehicle
+
+	--delete [Customer_Vehicle] by list Id
+	DELETE FROM [dbo].[Customer_Vehicle] WHERE Id IN (
+	SELECT Id FROM [dbo].[Customer_Vehicle] WHERE IdVehicle = @IdVehicle)
+
+	--insert to table [Vehicle_Deleted] from [Vehicle]
+	INSERT INTO [dbo].[Vehicle_Deleted]
+			   ([Id]
+			   ,[NameVehicle]
+			   ,[ChassisNumber]
+			   ,[EngineNumber]
+			   ,[LicensePlates]
+			   ,[IdBrandVehicleCategory]
+			   ,[IdModel]
+			   ,[IdType]
+			   ,[IdGearBox]
+			   ,[EngineCapacity]
+			   ,[Color]
+			   ,[Status]
+			   ,[CreatedDate]
+			   ,[IsHide]
+			   ,[YearOfManufacture]
+			   ,[Avatar])
+	SELECT * FROM [dbo].[Vehicle] WHERE Id = @IdVehicle
+
+		--insert to table Diary by [dbo].[Vehicle_Deleted]
+	INSERT INTO [dbo].[Diary]
+                           ([Id]
+                           ,[Content]
+                           ,[UserId]
+                           ,[DateCreate]
+                           ,[Title]
+                           ,[Operation]
+                           ,[Table]
+                           ,[IsSuccess]
+                           ,[UserName]
+                           ,[WithId])
+     VALUES
+     (NEWID(),
+	 CONCAT((SELECT Fullname FROM [dbo].[User] WHERE Id = @IdUser), N' đã thêm mới bảng Vehicle_Deleted'),
+	 @IdUser, GETDATE(), N'Thêm mới vào CSDL', 'Create', 'Vehicle_Deleted', 1, 'Admin', @IdVehicle)
+
+	--delete [Vehicle] by Id
+	DELETE FROM [dbo].[Vehicle] WHERE Id = @IdVehicle
+
+	--insert to table Diary by [dbo].[Vehicle]
+	INSERT INTO [dbo].[Diary]
+                           ([Id]
+                           ,[Content]
+                           ,[UserId]
+                           ,[DateCreate]
+                           ,[Title]
+                           ,[Operation]
+                           ,[Table]
+                           ,[IsSuccess]
+                           ,[UserName]
+                           ,[WithId])
+     VALUES
+     (NEWID(),
+	 CONCAT((SELECT Fullname FROM [dbo].[User] WHERE Id = @IdUser), N' đã xóa từ bảng Vehicle'),
+	 @IdUser, GETDATE(), N'Xóa thông tin CSDL', 'Delete', 'Vehicle', 1, 'Admin', @IdVehicle)
+GO
+/****** Object:  StoredProcedure [dbo].[GM_SP_GetAllRepairOrderByCustomer]    Script Date: 10/02/2023 10:43:01 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[GM_SP_GetAllRepairOrderByCustomer]
+@code nvarchar(MAX)
+AS
+select c.Id 'IdCustomer', c.Name 'NameCustomer', c.Code, c.Sex, c.Birthday, c.Phone,
+c.Email, c.Address 'AddressCus', c.IdCity, c.IdDistrict, c.IdWard, c.TaxNumber, c.AccountNumber, c.Note, c.Avatar, c.TypeOfCustomer, c.IdGroup,
+ro.Id 'IdRepairOrder', ro.Kilometer, ro.TaxPercent, ro.TotalMoney 'TotalMoneyRepair', ro.RO_RepairOdersCode, ro.CreatedDate,
+de.Id 'IdDebt', de.DebtContent, de.Deposit, de.TotalPay, de.DebtNumber, de.LastPay,
+r.Id 'IdRequest', r.RequestContent, r.IsCanceled, r.IsCompleted, r.IsProcessing, r.Note,
+ra.Id 'IdRepairOrdersAccessary', ra.IdCategoryAccessary, ra.Quantity, ra.Price, ra.DiscountPercent, ra.DiscountPrice, ra.TotalMoney 'TotalMoneyAcs',
+re.Id 'IdRepairOrdersEmployee', re.IdEmployee,
+ort.Id 'IdOrtherCost', ort.CostContent, ort.Quantity 'QuantityOrt', ort.Price 'PriceOrt', ort.TotalMoney 'TotalMoneyOrt'
+from RO_RepairOders ro 
+right join Customer c on c.Id = ro.IdCustomer
+left join Debt de on de.IdRepairOrders = ro.Id
+left join RequestList r on r.Id_RO_RepairOrders = ro.Id
+left join RepairOrders_Accessary ra on ra.IdRepairOrders = ro.Id
+left join RepairOrders_Employee re on re.IdRepairOrders = ro.Id
+left join OrtherCost ort on ort.IdRepairOders = ro.Id
+where c.Code = @code
+GO
+/****** Object:  StoredProcedure [dbo].[GM_SP_InsertRO_RepairOders]    Script Date: 10/02/2023 10:43:14 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[GM_SP_InsertRO_RepairOders]
+@RO_RepairOders RO_RepairOders_TableType READONLY,
+@RepairOrders_Employee RepairOrders_Employee_DataTable READONLY,
+@RepairOrders_Accessary RepairOrders_Accessary_DataTable READONLY,
+@OrtherCost OrtherCost_DataTable READONLY,
+@RequestList RequestList_DataTable READONLY,
+@Debt Debt_DataTable READONLY,
+@Accessary Accessary_DataTable READONLY,
+@IdUser uniqueidentifier
+AS  
+BEGIN TRAN
+
+BEGIN TRY
+	--insert to table RO_RepairOders
+	INSERT INTO RO_RepairOders
+    SELECT * FROM @RO_RepairOders
+
+	--insert to table Diary by [dbo].[RO_RepairOders]
+	INSERT INTO [dbo].[Diary]
+                           ([Id]
+                           ,[Content]
+                           ,[UserId]
+                           ,[DateCreate]
+                           ,[Title]
+                           ,[Operation]
+                           ,[Table]
+                           ,[IsSuccess]
+                           ,[UserName]
+                           ,[WithId])
+	 SELECT NEWID(),
+	 CONCAT((SELECT Fullname FROM [dbo].[User] WHERE Id = @IdUser), N' đã thêm mới bảng RO_RepairOders'),
+	 @IdUser, GETDATE(), N'Thêm mới vào CSDL', 'Create', 'RO_RepairOders', 1, 'Admin', Id FROM @RO_RepairOders
+
+	--insert to table RepairOrders_Employee
+	INSERT INTO RepairOrders_Employee
+    SELECT * FROM @RepairOrders_Employee
+
+	--insert to table Diary by [dbo].[RepairOrders_Employee]
+	INSERT INTO [dbo].[Diary]
+                           ([Id]
+                           ,[Content]
+                           ,[UserId]
+                           ,[DateCreate]
+                           ,[Title]
+                           ,[Operation]
+                           ,[Table]
+                           ,[IsSuccess]
+                           ,[UserName]
+                           ,[WithId])
+	 SELECT NEWID(),
+	 CONCAT((SELECT Fullname FROM [dbo].[User] WHERE Id = @IdUser), N' đã thêm mới bảng RepairOrders_Employee'),
+	 @IdUser, GETDATE(), N'Thêm mới vào CSDL', 'Create', 'RepairOrders_Employee', 1, 'Admin', Id FROM @RepairOrders_Employee
+
+    --insert to table RepairOrders_Accessary
+	INSERT INTO RepairOrders_Accessary
+    SELECT * FROM @RepairOrders_Accessary
+
+	--insert to table Diary by [dbo].[RepairOrders_Accessary]
+	INSERT INTO [dbo].[Diary]
+                           ([Id]
+                           ,[Content]
+                           ,[UserId]
+                           ,[DateCreate]
+                           ,[Title]
+                           ,[Operation]
+                           ,[Table]
+                           ,[IsSuccess]
+                           ,[UserName]
+                           ,[WithId])
+	 SELECT NEWID(),
+	 CONCAT((SELECT Fullname FROM [dbo].[User] WHERE Id = @IdUser), N' đã thêm mới bảng RepairOrders_Accessary'),
+	 @IdUser, GETDATE(), N'Thêm mới vào CSDL', 'Create', 'RepairOrders_Accessary', 1, 'Admin', Id FROM @RepairOrders_Accessary
+
+	--insert to table OrtherCost
+	INSERT INTO OrtherCost
+    SELECT * FROM @OrtherCost
+
+	--insert to table Diary by [dbo].[OrtherCost]
+	INSERT INTO [dbo].[Diary]
+                           ([Id]
+                           ,[Content]
+                           ,[UserId]
+                           ,[DateCreate]
+                           ,[Title]
+                           ,[Operation]
+                           ,[Table]
+                           ,[IsSuccess]
+                           ,[UserName]
+                           ,[WithId])
+	 SELECT NEWID(),
+	 CONCAT((SELECT Fullname FROM [dbo].[User] WHERE Id = @IdUser), N' đã thêm mới bảng OrtherCost'),
+	 @IdUser, GETDATE(), N'Thêm mới vào CSDL', 'Create', 'OrtherCost', 1, 'Admin', Id FROM @OrtherCost
+
+	--insert to table RequestList
+	INSERT INTO RequestList
+    SELECT * FROM @RequestList
+
+	--insert to table Diary by [dbo].[RequestList]
+	INSERT INTO [dbo].[Diary]
+                           ([Id]
+                           ,[Content]
+                           ,[UserId]
+                           ,[DateCreate]
+                           ,[Title]
+                           ,[Operation]
+                           ,[Table]
+                           ,[IsSuccess]
+                           ,[UserName]
+                           ,[WithId])
+	 SELECT NEWID(),
+	 CONCAT((SELECT Fullname FROM [dbo].[User] WHERE Id = @IdUser), N' đã thêm mới bảng RequestList'),
+	 @IdUser, GETDATE(), N'Thêm mới vào CSDL', 'Create', 'RequestList', 1, 'Admin', Id FROM @RequestList
+
+	--insert to table Debt
+	INSERT INTO Debt
+    SELECT * FROM @Debt
+
+	--insert to table Diary by [dbo].[Debt]
+	INSERT INTO [dbo].[Diary]
+                           ([Id]
+                           ,[Content]
+                           ,[UserId]
+                           ,[DateCreate]
+                           ,[Title]
+                           ,[Operation]
+                           ,[Table]
+                           ,[IsSuccess]
+                           ,[UserName]
+                           ,[WithId])
+	 SELECT NEWID(),
+	 CONCAT((SELECT Fullname FROM [dbo].[User] WHERE Id = @IdUser), N' đã thêm mới bảng Debt'),
+	 @IdUser, GETDATE(), N'Thêm mới vào CSDL', 'Create', 'Debt', 1, 'Admin', Id FROM @Debt
+
+	--insert to table Accessary
+	UPDATE Accessary
+    SET Inventory -= t.Inventory
+    FROM Accessary t1 INNER JOIN @Accessary t ON t1.Id = t.Id;
+
+	--insert to table Diary by [dbo].[Accessary]
+	INSERT INTO [dbo].[Diary]
+                           ([Id]
+                           ,[Content]
+                           ,[UserId]
+                           ,[DateCreate]
+                           ,[Title]
+                           ,[Operation]
+                           ,[Table]
+                           ,[IsSuccess]
+                           ,[UserName]
+                           ,[WithId])
+	 SELECT NEWID(),
+	 CONCAT((SELECT Fullname FROM [dbo].[User] WHERE Id = @IdUser), N' đã cập nhật bảng Accessary'),
+	 @IdUser, GETDATE(), N'Cập nhật vào CSDL', 'Update', 'Accessary', 1, 'Admin', Id FROM @Accessary
+
+   COMMIT TRAN
+
+END TRY
+BEGIN CATCH
+
+  ROLLBACK TRAN
+
+END CATCH
+GO
+/****** Object:  StoredProcedure [dbo].[GM_SP_LoadAndUpdateRO_RepairOders]    Script Date: 10/02/2023 10:43:37 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE PROCEDURE [dbo].[GM_SP_LoadAndUpdateRO_RepairOders]
+AS
+BEGIN
+--update total money RO_RepairOders from table RepairOrders_Accessary
+update RO_RepairOders SET TotalMoney = 
+(SELECT sum(RepairOrders_Accessary.TotalMoney) from RepairOrders_Accessary 
+where RepairOrders_Accessary.IdRepairOrders = RO_RepairOders.Id GROUP BY IdRepairOrders)
+select *from [dbo].[RO_RepairOders] order by CreatedDate desc
+END
+GO
+/****** Object:  StoredProcedure [dbo].[GM_SP_RevenueStatistical]    Script Date: 15/02/2023 08:38:07 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[GM_SP_RevenueStatistical]
+@fromDate nvarchar(MAX),
+@toDate nvarchar(MAX)
+AS
+SELECT 
+-- calculate the total repair vehicle
+(select temp.total + (temp.total * (CAST(ro.TaxPercent AS float) / 100)) from
+(SELECT SUM(ORT.TotalMoney) 'total', ro.Id
+ FROM RO_RepairOders RO RIGHT JOIN OrtherCost ORT ON RO.ID = ORT.IdRepairOders
+ group by ro.Id) as temp left join RO_RepairOders RO on ro.Id = temp.Id
+ WHERE CONVERT(DATE, RO.CreatedDate) >= CONVERT(date, @fromDate, 103) AND CONVERT(DATE, RO.CreatedDate) <= CONVERT(date, @toDate, 103))'Repair',
+-- calculate the total sell item
+(select temp.total + (temp.total * (CAST(ro.TaxPercent AS float) / 100)) from
+(SELECT SUM(REA.TotalMoney) 'total', ro.Id
+ FROM RO_RepairOders RO RIGHT JOIN RepairOrders_Accessary REA ON RO.ID = REA.IdRepairOrders
+ group by ro.Id) as temp left join RO_RepairOders RO on ro.Id = temp.Id
+ WHERE CONVERT(DATE, RO.CreatedDate) >= CONVERT(date, @fromDate, 103) AND CONVERT(DATE, RO.CreatedDate) <= CONVERT(date, @toDate, 103))'Sell',
+-- calculate the total debt
+( SELECT sum(DebtNumber)
+  FROM (
+    SELECT t.IdRepairOrders, t.CreatedDate,t.DebtNumber,
+    ROW_NUMBER() OVER (PARTITION BY t.IdRepairOrders ORDER BY t.CreatedDate DESC) AS row_num
+    FROM Debt t
+	where t.IdRepairOrders IN (SELECT Id FROM RO_RepairOders RO
+	WHERE CONVERT(DATE, RO.CreatedDate) >= CONVERT(date, @fromDate, 103) AND CONVERT(DATE, RO.CreatedDate) <= CONVERT(date, @toDate, 103))
+  ) latest_table2
+  WHERE latest_table2.row_num = 1
+)'Debt',
+-- calculate the total debt that needs to be received
+(0) 'Receivables',
+-- calculate the total debt that needs to be Payment
+(0) 'Payment',
+-- calculate vehicles are processing
+(SELECT SUM(TEMP.result) FROM(
+SELECT COUNT(DISTINCT VE.Id) 'result'
+FROM Vehicle VE
+INNER JOIN RO_RepairOders RO ON RO.IdVehicle = VE.Id
+INNER JOIN RequestList RE ON RO.Id = RE.Id_RO_RepairOrders
+WHERE VE.IsHide = 0
+GROUP BY VE.Id
+HAVING MAX(CASE WHEN RE.IsProcessing <> 1 THEN 1 ELSE 0 END) = 0
+) as TEMP) 'ProcessingVehicle',
+-- calculate vehicles are completed
+SUM(TEMP1.result) 'CompletedVehicle' FROM(
+SELECT COUNT(DISTINCT VE.Id) 'result'
+FROM Vehicle VE
+INNER JOIN RO_RepairOders RO ON RO.IdVehicle = VE.Id
+INNER JOIN RequestList RE ON RO.Id = RE.Id_RO_RepairOrders
+WHERE VE.IsHide = 0
+GROUP BY VE.Id
+HAVING MAX(CASE WHEN RE.IsCompleted <> 1 THEN 1 ELSE 0 END) = 0
+) as TEMP1
+/****** Object:  StoredProcedure [dbo].[GM_SP_UpdateRO_RepairOders]    Script Date: 14/02/2023 11:03:01 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[GM_SP_UpdateRO_RepairOders]
+@RO_RepairOders RO_RepairOders_TableType READONLY,
+@RepairOrders_Employee RepairOrders_Employee_DataTable READONLY,
+@RepairOrders_Accessary RepairOrders_Accessary_DataTable READONLY,
+@OrtherCost OrtherCost_DataTable READONLY,
+@RequestList RequestList_DataTable READONLY,
+@Debt Debt_DataTable READONLY,
+--@Accessary Accessary_DataTable READONLY,
+@IdUser uniqueidentifier
+AS  
+BEGIN TRAN
+
+BEGIN TRY
+		
+	DECLARE @IdCustomer AS uniqueidentifier
+	DECLARE @IdVehicle AS uniqueidentifier
+	DECLARE @Kilometer AS int
+	DECLARE @TaxPercent AS int
+	DECLARE @TotalMoney AS float
+	DECLARE @Id AS uniqueidentifier
+
+	SELECT @IdCustomer = IdCustomer FROM @RO_RepairOders
+	SELECT @IdVehicle = IdVehicle FROM @RO_RepairOders
+	SELECT @Kilometer = Kilometer FROM @RO_RepairOders
+	SELECT @TaxPercent = TaxPercent FROM @RO_RepairOders
+	SELECT @TotalMoney = TotalMoney FROM @RO_RepairOders
+	SELECT @Id = Id FROM @RO_RepairOders
+
+	--update to table RO_RepairOders
+	UPDATE [dbo].[RO_RepairOders] SET 
+	IdCustomer = @IdCustomer,
+    IdVehicle = @IdVehicle,
+    Kilometer = @Kilometer,
+	TaxPercent = @TaxPercent,
+	TotalMoney = @TotalMoney
+    WHERE Id = @Id;
+
+	--update RepairOrders_Employee
+	DECLARE @rowCountRepairOrders_Employee INT
+	SELECT @rowCountRepairOrders_Employee = COUNT(*) FROM @RepairOrders_Employee;
+
+	DECLARE @rowCountRepairOrders_EmployeeByIDRepairOders INT
+	SELECT @rowCountRepairOrders_EmployeeByIDRepairOders = COUNT(*) from RepairOrders_Employee where IdRepairOrders = @Id
+
+	IF @rowCountRepairOrders_Employee < @rowCountRepairOrders_EmployeeByIDRepairOders
+	BEGIN
+			DECLARE @ListOfIdWillDelete TABLE (Id UNIQUEIDENTIFIER);
+
+			INSERT INTO @ListOfIdWillDelete (Id)
+			SELECT re.Id 
+			FROM RepairOrders_Employee re 
+			LEFT JOIN @RepairOrders_Employee reData 
+			ON re.Id = reData.Id
+			WHERE re.IdRepairOrders = @Id and reData.Id IS NULL;
+
+			delete from RepairOrders_Employee where Id in (SELECT Id FROM @ListOfIdWillDelete)
+			
+	END
+	ELSE
+	BEGIN
+			--update RepairOrders_Employee
+			DECLARE @ListOfIdWillUpdate TABLE (Id UNIQUEIDENTIFIER);
+
+			INSERT INTO @ListOfIdWillUpdate (Id)
+			SELECT re.Id
+			FROM RepairOrders_Employee re
+			inner JOIN @RepairOrders_Employee reData
+			ON re.Id = reData.Id
+			where re.IdRepairOrders = @Id;
+
+			UPDATE [dbo].[RepairOrders_Employee]
+			SET IdEmployee = t2.IdEmployee,
+				Note = t2.Note
+			FROM [dbo].[RepairOrders_Employee] t1
+			JOIN @RepairOrders_Employee t2
+			ON t1.Id = t2.Id
+			WHERE t1.Id IN (SELECT Id FROM @ListOfIdWillUpdate);
+
+			--insert RepairOrders_Employee
+			DECLARE @ListOfIdWillInsert TABLE (Id UNIQUEIDENTIFIER);
+
+			INSERT INTO @ListOfIdWillInsert (Id)
+			SELECT reData.Id 
+			FROM RepairOrders_Employee re 
+			right JOIN @RepairOrders_Employee reData 
+			ON re.Id = reData.Id
+			WHERE re.Id IS NULL
+
+			INSERT INTO RepairOrders_Employee
+			SELECT * FROM @RepairOrders_Employee where Id in (select Id from @ListOfIdWillInsert)
+	END
+
+	--update RepairOrders_Accessary
+	DECLARE @rowCountRepairOrders_Accessary INT
+	SELECT @rowCountRepairOrders_Accessary = COUNT(*) FROM @RepairOrders_Accessary;
+
+	DECLARE @rowCountRepairOrders_AccessaryByIDRepairOders INT
+	SELECT @rowCountRepairOrders_AccessaryByIDRepairOders = COUNT(*) from RepairOrders_Accessary where IdRepairOrders = @Id
+
+	IF @rowCountRepairOrders_Accessary < @rowCountRepairOrders_AccessaryByIDRepairOders
+	BEGIN
+			DECLARE @ListOfIdAccWillDelete TABLE (Id UNIQUEIDENTIFIER);
+
+			INSERT INTO @ListOfIdAccWillDelete (Id)
+			SELECT re.Id 
+			FROM RepairOrders_Accessary re 
+			LEFT JOIN @RepairOrders_Accessary reData 
+			ON re.Id = reData.Id
+			WHERE re.IdRepairOrders = @Id and reData.Id IS NULL;
+
+			delete from RepairOrders_Accessary where Id in (SELECT Id FROM @ListOfIdAccWillDelete)
+			
+	END
+	ELSE
+	BEGIN
+			--update RepairOrders_Accessary
+			DECLARE @ListOfIdAccWillUpdate TABLE (Id UNIQUEIDENTIFIER);
+
+			INSERT INTO @ListOfIdAccWillUpdate (Id)
+			SELECT re.Id
+			FROM RepairOrders_Accessary re
+			inner JOIN @RepairOrders_Accessary reData
+			ON re.Id = reData.Id
+			where re.IdRepairOrders = @Id;
+
+			UPDATE [dbo].[RepairOrders_Accessary]
+			SET IdCategoryAccessary = t2.IdCategoryAccessary,
+				Quantity = t2.Quantity,
+				Price = t2.Price,
+				DiscountPercent = t2.DiscountPercent,
+				DiscountPrice = t2.DiscountPrice,
+				TotalMoney = t2.TotalMoney
+			FROM [dbo].[RepairOrders_Accessary] t1
+			JOIN @RepairOrders_Accessary t2
+			ON t1.Id = t2.Id
+			WHERE t1.Id IN (SELECT Id FROM @ListOfIdAccWillUpdate);
+
+			--insert RepairOrders_Accessary
+			DECLARE @ListOfIdAccWillInsert TABLE (Id UNIQUEIDENTIFIER);
+
+			INSERT INTO @ListOfIdAccWillInsert (Id)
+			SELECT reData.Id 
+			FROM RepairOrders_Accessary re 
+			right JOIN @RepairOrders_Accessary reData 
+			ON re.Id = reData.Id
+			WHERE re.Id IS NULL
+
+			INSERT INTO RepairOrders_Accessary
+			SELECT * FROM @RepairOrders_Accessary where Id in (select Id from @ListOfIdAccWillInsert)
+	END
+
+	--update RequestList
+	DECLARE @rowCountRequestList INT
+	SELECT @rowCountRequestList = COUNT(*) FROM @RequestList;
+
+	DECLARE @rowCountRequestListByIDRepairOders INT
+	SELECT @rowCountRequestListByIDRepairOders = COUNT(*) from RequestList where Id_RO_RepairOrders = @Id
+
+	IF @rowCountRequestList < @rowCountRequestListByIDRepairOders
+	BEGIN
+			DECLARE @ListOfIdRequestWillDelete TABLE (Id UNIQUEIDENTIFIER);
+
+			INSERT INTO @ListOfIdRequestWillDelete (Id)
+			SELECT re.Id 
+			FROM RequestList re 
+			LEFT JOIN @RequestList reData 
+			ON re.Id = reData.Id
+			WHERE re.Id_RO_RepairOrders = @Id and reData.Id IS NULL;
+
+			delete from RequestList where Id in (SELECT Id FROM @ListOfIdRequestWillDelete)
+			
+	END
+	ELSE
+	BEGIN
+			--update RequestList
+			DECLARE @ListOfIdRequestWillUpdate TABLE (Id UNIQUEIDENTIFIER);
+
+			INSERT INTO @ListOfIdRequestWillUpdate (Id)
+			SELECT re.Id
+			FROM RequestList re
+			inner JOIN @RequestList reData
+			ON re.Id = reData.Id
+			where re.Id_RO_RepairOrders = @Id;
+
+			UPDATE [dbo].[RequestList]
+			SET RequestContent = t2.RequestContent,
+				Note = t2.Note
+			FROM [dbo].[RequestList] t1
+			JOIN @RequestList t2
+			ON t1.Id = t2.Id
+			WHERE t1.Id IN (SELECT Id FROM @ListOfIdRequestWillUpdate);
+
+			--insert RequestList
+			DECLARE @ListOfIdRequestListWillInsert TABLE (Id UNIQUEIDENTIFIER);
+
+			INSERT INTO @ListOfIdRequestListWillInsert (Id)
+			SELECT reData.Id 
+			FROM RequestList re 
+			right JOIN @RequestList reData 
+			ON re.Id = reData.Id
+			WHERE re.Id IS NULL
+
+			INSERT INTO RequestList
+			SELECT * FROM @RequestList where Id in (select Id from @ListOfIdRequestListWillInsert)
+	END
+
+	--update OrtherCost
+	DECLARE @rowCountOrtherCost INT
+	SELECT @rowCountOrtherCost = COUNT(*) FROM @OrtherCost;
+
+	DECLARE @rowCountOrtherCostByIDRepairOders INT
+	SELECT @rowCountOrtherCostByIDRepairOders = COUNT(*) from OrtherCost where IdRepairOders = @Id
+
+	IF @rowCountOrtherCost < @rowCountOrtherCostByIDRepairOders
+	BEGIN
+			DECLARE @ListOfIdOrtherCostWillDelete TABLE (Id UNIQUEIDENTIFIER);
+
+			INSERT INTO @ListOfIdOrtherCostWillDelete (Id)
+			SELECT re.Id 
+			FROM OrtherCost re 
+			LEFT JOIN @OrtherCost reData 
+			ON re.Id = reData.Id
+			WHERE re.IdRepairOders = @Id and reData.Id IS NULL;
+
+			delete from OrtherCost where Id in (SELECT Id FROM @ListOfIdOrtherCostWillDelete)
+			
+	END
+	ELSE
+	BEGIN
+			--update OrtherCost
+			DECLARE @ListOfIdOrtherCostWillUpdate TABLE (Id UNIQUEIDENTIFIER);
+
+			INSERT INTO @ListOfIdOrtherCostWillUpdate (Id)
+			SELECT re.Id
+			FROM OrtherCost re
+			inner JOIN @OrtherCost reData
+			ON re.Id = reData.Id
+			where re.IdRepairOders = @Id;
+
+			UPDATE [dbo].[OrtherCost]
+			SET CostContent = t2.CostContent,
+				Quantity = t2.Quantity,
+				Price = t2.Price,
+				TotalMoney = t2.TotalMoney
+			FROM [dbo].[OrtherCost] t1
+			JOIN @OrtherCost t2
+			ON t1.Id = t2.Id
+			WHERE t1.Id IN (SELECT Id FROM @ListOfIdOrtherCostWillUpdate);
+
+			--insert OrtherCost
+			DECLARE @ListOfIdOrtherCostListWillInsert TABLE (Id UNIQUEIDENTIFIER);
+
+			INSERT INTO @ListOfIdOrtherCostListWillInsert (Id)
+			SELECT reData.Id 
+			FROM OrtherCost re 
+			right JOIN @OrtherCost reData 
+			ON re.Id = reData.Id
+			WHERE re.Id IS NULL
+
+			INSERT INTO OrtherCost
+			SELECT * FROM @OrtherCost where Id in (select Id from @ListOfIdOrtherCostListWillInsert)
+	END
+
+	--update Debt
+	DECLARE @deposit float
+	SELECT @deposit = Deposit FROM @Debt
+
+	DECLARE @depositByIdRepairOrder float
+	SELECT @depositByIdRepairOrder = (SELECT TOP 1 Deposit FROM Debt where IdRepairOrders = @Id ORDER BY CreatedDate desc);
+
+	IF @deposit != @depositByIdRepairOrder
+	BEGIN
+		INSERT INTO Debt
+		SELECT * FROM @Debt
+	END
+
+   COMMIT TRAN
+
+END TRY
+BEGIN CATCH
+
+  ROLLBACK TRAN
+
+END CATCH
+
+/****** Object:  StoredProcedure [dbo].[GM_SP_RevenueStatistical]    Script Date: 14/02/2023 14:47:24 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[GM_SP_RevenueStatistical]
+@fromDate nvarchar(MAX),
+@toDate nvarchar(MAX)
+AS
+SELECT 
+-- calculate the total revenue
+((SELECT SUM(ORT.TotalMoney) FROM RO_RepairOders RO RIGHT JOIN OrtherCost ORT ON RO.ID = ORT.IdRepairOders
+WHERE CONVERT(DATE, RO.CreatedDate) >= CONVERT(date, @fromDate, 103) AND CONVERT(DATE, RO.CreatedDate) <= CONVERT(date, @toDate, 103)
+) + (SELECT SUM(REA.TotalMoney) FROM RO_RepairOders RO RIGHT JOIN RepairOrders_Accessary REA ON RO.ID = REA.IdRepairOrders
+WHERE CONVERT(DATE, RO.CreatedDate) >= CONVERT(date, @fromDate, 103) AND CONVERT(DATE, RO.CreatedDate) <= CONVERT(date, @toDate, 103)
+)) 'Revenue',
+-- calculate the total repair vehicle
+(SELECT SUM(ORT.TotalMoney) FROM RO_RepairOders RO RIGHT JOIN OrtherCost ORT ON RO.ID = ORT.IdRepairOders
+WHERE CONVERT(DATE, RO.CreatedDate) >= CONVERT(date, @fromDate, 103) AND CONVERT(DATE, RO.CreatedDate) <= CONVERT(date, @toDate, 103)
+) 'Repair',
+-- calculate the total sell vehicle
+(SELECT SUM(REA.TotalMoney) FROM RO_RepairOders RO RIGHT JOIN RepairOrders_Accessary REA ON RO.ID = REA.IdRepairOrders
+WHERE CONVERT(DATE, RO.CreatedDate) >= CONVERT(date, @fromDate, 103) AND CONVERT(DATE, RO.CreatedDate) <= CONVERT(date, @toDate, 103)
+) 'Sell',
+-- calculate the total debt
+( SELECT sum(DebtNumber)
+  FROM (
+    SELECT t.IdRepairOrders, t.CreatedDate,t.DebtNumber,
+    ROW_NUMBER() OVER (PARTITION BY t.IdRepairOrders ORDER BY t.CreatedDate DESC) AS row_num
+    FROM Debt t
+	where t.IdRepairOrders IN (SELECT Id FROM RO_RepairOders RO
+	WHERE CONVERT(DATE, RO.CreatedDate) >= CONVERT(date, @fromDate, 103) AND CONVERT(DATE, RO.CreatedDate) <= CONVERT(date, @toDate, 103))
+  ) latest_table2
+  WHERE latest_table2.row_num = 1
+)'Debt',
+-- calculate the total debt that needs to be received
+(0) 'Receivables',
+-- calculate the total debt that needs to be Payment
+(0) 'Payment',
+-- calculate vehicles are processing
+(SELECT SUM(TEMP.result) FROM(
+SELECT COUNT(DISTINCT VE.Id) 'result'
+FROM Vehicle VE
+INNER JOIN RO_RepairOders RO ON RO.IdVehicle = VE.Id
+INNER JOIN RequestList RE ON RO.Id = RE.Id_RO_RepairOrders
+WHERE VE.IsHide = 0
+GROUP BY VE.Id
+HAVING MAX(CASE WHEN RE.IsProcessing <> 1 THEN 1 ELSE 0 END) = 0
+) as TEMP) 'ProcessingVehicle',
+-- calculate vehicles are completed
+SUM(TEMP1.result) 'CompletedVehicle' FROM(
+SELECT COUNT(DISTINCT VE.Id) 'result'
+FROM Vehicle VE
+INNER JOIN RO_RepairOders RO ON RO.IdVehicle = VE.Id
+INNER JOIN RequestList RE ON RO.Id = RE.Id_RO_RepairOrders
+WHERE VE.IsHide = 0
+GROUP BY VE.Id
+HAVING MAX(CASE WHEN RE.IsCompleted <> 1 THEN 1 ELSE 0 END) = 0
+) as TEMP1
+
+
+
+  SELECT sum(DebtNumber)
+  FROM (
+    SELECT t.IdRepairOrders, t.CreatedDate,t.DebtNumber,
+    ROW_NUMBER() OVER (PARTITION BY t.IdRepairOrders ORDER BY t.CreatedDate DESC) AS row_num
+    FROM Debt t
+	where t.IdRepairOrders in ('21763390-5E0D-42C3-B21B-C7747DC5F4AB','83491BDB-AADA-449D-B4C2-B5E3F9D62508')
+  ) latest_table2
+  WHERE latest_table2.row_num = 1

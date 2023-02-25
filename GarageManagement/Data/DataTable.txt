@@ -1,0 +1,90 @@
+/****** Object:  UserDefinedTableType [dbo].[Accessary_DataTable]    Script Date: 10/02/2023 10:47:05 ******/
+CREATE TYPE [dbo].[Accessary_DataTable] AS TABLE(
+	[Id] [uniqueidentifier] NOT NULL,
+	[Code] [nvarchar](max) NULL,
+	[Name] [nvarchar](max) NULL,
+	[Description] [nvarchar](max) NULL,
+	[AccessaryGroup] [int] NULL,
+	[UnitName] [nvarchar](max) NULL,
+	[PriceImport] [float] NULL,
+	[PriceExport] [float] NULL,
+	[CreatedDate] [datetime] NULL,
+	[Status] [int] NULL,
+	[Inventory] [float] NULL,
+	[InventoryAlert] [float] NULL,
+	[GroupID] [uniqueidentifier] NULL
+)
+GO
+/****** Object:  UserDefinedTableType [dbo].[Debt_DataTable]    Script Date: 10/02/2023 10:48:12 ******/
+CREATE TYPE [dbo].[Debt_DataTable] AS TABLE(
+	[Id] [uniqueidentifier] NOT NULL,
+	[DebtContent] [nvarchar](max) NULL,
+	[Deposit] [float] NULL,
+	[TotalPay] [float] NULL,
+	[DebtNumber] [float] NULL,
+	[LastPay] [bit] NULL,
+	[IdRepairOrders] [uniqueidentifier] NULL,
+	[CreatedDate] [datetime] NULL,
+	[Status] [int] NULL
+)
+GO
+/****** Object:  UserDefinedTableType [dbo].[OrtherCost_DataTable]    Script Date: 10/02/2023 10:48:23 ******/
+CREATE TYPE [dbo].[OrtherCost_DataTable] AS TABLE(
+	[Id] [uniqueidentifier] NOT NULL,
+	[CostContent] [nvarchar](max) NULL,
+	[Quantity] [float] NULL,
+	[Price] [float] NULL,
+	[TotalMoney] [float] NULL,
+	[CreatedDate] [datetime] NULL,
+	[Status] [int] NULL,
+	[IdRepairOders] [uniqueidentifier] NULL
+)
+GO
+/****** Object:  UserDefinedTableType [dbo].[RepairOrders_Accessary_DataTable]    Script Date: 10/02/2023 10:48:33 ******/
+CREATE TYPE [dbo].[RepairOrders_Accessary_DataTable] AS TABLE(
+	[Id] [uniqueidentifier] NULL,
+	[IdCategoryAccessary] [uniqueidentifier] NULL,
+	[IdRepairOrders] [uniqueidentifier] NULL,
+	[Quantity] [float] NULL,
+	[Price] [float] NULL,
+	[DiscountPercent] [int] NULL,
+	[DiscountPrice] [float] NULL,
+	[TotalMoney] [float] NULL,
+	[CreatedDate] [datetime] NULL
+)
+GO
+/****** Object:  UserDefinedTableType [dbo].[RepairOrders_Employee_DataTable]    Script Date: 10/02/2023 10:48:45 ******/
+CREATE TYPE [dbo].[RepairOrders_Employee_DataTable] AS TABLE(
+	[Id] [uniqueidentifier] NULL,
+	[IdRepairOrders] [uniqueidentifier] NULL,
+	[IdEmployee] [uniqueidentifier] NULL,
+	[CreatedDate] [datetime] NULL,
+	[Note] [nvarchar](max) NULL
+)
+GO
+/****** Object:  UserDefinedTableType [dbo].[RequestList_DataTable]    Script Date: 10/02/2023 10:48:55 ******/
+CREATE TYPE [dbo].[RequestList_DataTable] AS TABLE(
+	[Id] [uniqueidentifier] NOT NULL,
+	[Id_RO_RepairOrders] [uniqueidentifier] NULL,
+	[RequestContent] [nvarchar](max) NULL,
+	[IsProcessing] [bit] NULL,
+	[IsCompleted] [bit] NULL,
+	[IsCanceled] [bit] NULL,
+	[Note] [nvarchar](max) NULL,
+	[Status] [int] NULL,
+	[CreatedDate] [datetime] NULL
+)
+GO
+/****** Object:  UserDefinedTableType [dbo].[RO_RepairOders_TableType]    Script Date: 10/02/2023 10:49:04 ******/
+CREATE TYPE [dbo].[RO_RepairOders_TableType] AS TABLE(
+	[Id] [uniqueidentifier] NULL,
+	[RO_RepairOdersCode] [nvarchar](max) NULL,
+	[IdCustomer] [uniqueidentifier] NULL,
+	[IdVehicle] [uniqueidentifier] NULL,
+	[Kilometer] [int] NULL,
+	[TaxPercent] [int] NULL,
+	[TotalMoney] [float] NULL,
+	[CreatedDate] [datetime] NULL,
+	[Status] [int] NULL
+)
+GO
